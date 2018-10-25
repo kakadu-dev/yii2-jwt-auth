@@ -265,7 +265,7 @@ class ApiTokenService extends Component
      * @return ApiToken|null
      */
     public function getApiToken(string $accessToken): ?ApiToken
-    {5
+    {
         return ApiToken::find()->where([
             'AND',
             ['access_token' => $accessToken],
