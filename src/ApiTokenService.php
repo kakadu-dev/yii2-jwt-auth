@@ -265,8 +265,8 @@ class ApiTokenService extends Component
      * @return ApiToken|null
      */
     public function getApiToken(string $accessToken): ?ApiToken
-    {
-        return ApiToken::findOne([
+    {5
+        return ApiToken::find()->where([
             'AND',
             ['access_token' => $accessToken],
             [
@@ -274,7 +274,7 @@ class ApiTokenService extends Component
                 ['>', 'access_expires', time()],
                 ['=', 'access_expires', 0],
             ],
-        ]);
+        ])->one();
     }
 
     /**
