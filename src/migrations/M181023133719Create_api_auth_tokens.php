@@ -29,8 +29,8 @@ class M181023133719Create_api_auth_tokens extends Migration
     public function safeUp(): void
     {
         $this->createTable($this->tableName, [
-            'access_token'    => $this->string(255),
-            'refresh_token'   => $this->string(255)->notNull()->unique(),
+            'access_token'    => $this->string(1000),
+            'refresh_token'   => $this->string(1000)->notNull()->unique(),
             'user_id'         => $this->integer(11)->notNull(),
             'access_expires'  => $this->integer(11)->defaultValue(0),
             'refresh_expires' => $this->integer(11)->defaultValue(0),
