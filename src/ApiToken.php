@@ -44,7 +44,7 @@ class ApiToken extends ActiveRecord
         return [
             [['access_token', 'refresh_token', 'user_id'], 'required'],
             [['user_id', 'access_expires', 'refresh_expires'], 'integer'],
-            [['access_token', 'refresh_token'], 'string', 'max' => 1000],
+            [['access_token', 'refresh_token'], 'string', 'max' => 500],
             [['access_token', 'refresh_token'], 'unique'],
             [['access_expires', 'refresh_expires'], 'default', 'value' => 0, 'skipOnEmpty' => false],
         ];

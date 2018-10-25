@@ -30,8 +30,8 @@ class M181023133719Create_api_auth_tokens extends Migration
     {
         $this->createTable($this->tableName, [
             'id'              => $this->primaryKey(),
-            'access_token'    => $this->string(1000)->notNull()->unique(),
-            'refresh_token'   => $this->string(1000)->notNull()->unique(),
+            'access_token'    => $this->string(500)->notNull(),
+            'refresh_token'   => $this->string(500)->notNull(),
             'user_id'         => $this->integer(11)->notNull(),
             'access_expires'  => $this->integer(11)->defaultValue(0),
             'refresh_expires' => $this->integer(11)->defaultValue(0),
