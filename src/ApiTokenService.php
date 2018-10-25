@@ -6,7 +6,7 @@
  * Time: 16:52
  */
 
-namespace MP\Yii2JwtAuth;
+namespace Kakadu\Yii2JwtAuth;
 
 use Firebase\JWT\ExpiredException;
 use yii\base\Component;
@@ -15,7 +15,7 @@ use yii\helpers\ArrayHelper;
 
 /**
  * Class    ApiTokenService
- * @package MP\Yii2JwtAuth
+ * @package Kakadu\Yii2JwtAuth
  * @author  Yarmaliuk Mikhail
  * @version 1.0
  */

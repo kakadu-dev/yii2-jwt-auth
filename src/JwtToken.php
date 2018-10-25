@@ -6,11 +6,11 @@
  * Time: 10:26
  */
 
-namespace MP\Yii2JwtAuth;
+namespace Kakadu\Yii2JwtAuth;
 
 /**
  * Class    JwtToken
- * @package MP\Yii2JwtAuth
+ * @package Kakadu\Yii2JwtAuth
  * @author  Yarmaliuk Mikhail
  * @version 1.0
  */

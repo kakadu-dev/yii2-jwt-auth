@@ -36,7 +36,7 @@ return [
             'migrationPath'       => '@console/migrations',
             'migrationNamespaces' => [
                 // ...
-                'MP\Yii2JwtAuth\migrations',
+                'Kakadu\Yii2JwtAuth\migrations',
             ],
         ],
     ],
@@ -49,7 +49,7 @@ Configure api tokens component (e.g. common/config/main.php):
 return [
     'components' => [
         'apiTokens'      => [
-            'class'     => \MP\Yii2JwtAuth\ApiTokenService::class,
+            'class'     => \Kakadu\Yii2JwtAuth\ApiTokenService::class,
             'secretKey' => '', // set in main-local.php
             'issuer'    => 'you-domain-name', // or yii-params.domain
             'audience'  => ['you-domain-name'], // or yii-params.domain
@@ -73,7 +73,7 @@ class AuthController extends yii\rest\Controller
         // Same actions for login url
         $tokens = \Yii::$app->apiTokens->create($newUser->id, ['someField' => 'someValue']);
         
-        MP\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $tokens);
+        \Kakadu\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $tokens);
     }
     
     public function actionSignIn()
@@ -82,7 +82,7 @@ class AuthController extends yii\rest\Controller
     
         $tokens = \Yii::$app->apiTokens->create($user->id, ['someField' => 'someValue']);
         
-        MP\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $tokens);
+        \Kakadu\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $tokens);
     }
     
     /**
@@ -102,7 +102,7 @@ class AuthController extends yii\rest\Controller
         // Renew
         $newTokens = \Yii::$app->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefreshToken);
         
-        MP\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $newTokens);
+        \Kakadu\Yii2JwtAuth\JwtBearerAuth::addJwtToHeader(\Yii::$app->response, $newTokens);
     }
 }
 ```
@@ -118,7 +118,7 @@ class SecureController extends yii\rest\Controller
     {
         return ArrayHelper::merge(parent::behaviors(), [
             'authenticator' => [
-                'class' => MP\Yii2JwtAuth\JwtBearerAuth::class,
+                'class' => \Kakadu\Yii2JwtAuth\JwtBearerAuth::class,
             ],
             'access'        => [
                 'class' => AccessControl::class,

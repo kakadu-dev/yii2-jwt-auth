@@ -6,13 +6,13 @@
  * Time: 13:37
  */
 
-namespace MP\Yii2JwtAuth\migrations;
+namespace Kakadu\Yii2JwtAuth\migrations;
 
 use yii\db\Migration;
 
 /**
  * Class    M181023133719Create_api_auth_tokens
- * @package MP\Yii2JwtAuth\migrations
+ * @package Kakadu\Yii2JwtAuth\migrations
  * @author  Yarmaliuk Mikhail
  * @version 1.0
  */

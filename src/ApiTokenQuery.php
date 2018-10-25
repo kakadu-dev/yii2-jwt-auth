@@ -6,14 +6,14 @@
  * Time: 13:46
  */
 
-namespace MP\Yii2JwtAuth;
+namespace Kakadu\Yii2JwtAuth;
 
 use yii\db\ActiveQuery;
 use yii\db\BatchQueryResult;
 
 /**
  * Class    ApiTokenQuery
- * @package MP\Yii2JwtAuth
+ * @package Kakadu\Yii2JwtAuth
  * @author  Yarmaliuk Mikhail
  * @version 1.0
  *

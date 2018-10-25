@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "MP\\Yii2JwtAuth\\": "src/"
+      "Kakadu\\Yii2JwtAuth\\": "src/"
     }
   }
 }

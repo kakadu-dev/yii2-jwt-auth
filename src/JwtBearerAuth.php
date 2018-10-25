@@ -6,7 +6,7 @@
  * Time: 12:10
  */
 
-namespace MP\Yii2JwtAuth;
+namespace Kakadu\Yii2JwtAuth;
 
 use Yii;
 use yii\filters\auth\HttpBearerAuth;
@@ -16,7 +16,7 @@ use yii\web\UnauthorizedHttpException;
 
 /**
  * Class    JwtBearerAuth
- * @package MP\Yii2JwtAuth
+ * @package Kakadu\Yii2JwtAuth
  * @author  Yarmaliuk Mikhail
  * @version 1.0
  */
