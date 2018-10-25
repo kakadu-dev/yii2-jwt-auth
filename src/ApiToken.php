@@ -19,6 +19,7 @@ use yii\db\ActiveRecord;
  *
  * This is the model class for table "{{%api_auth_tokens}}".
  *
+ * @property int    $id
  * @property string $access_token
  * @property string $refresh_token
  * @property int    $user_id
@@ -44,7 +45,6 @@ class ApiToken extends ActiveRecord
             [['access_token', 'refresh_token', 'user_id'], 'required'],
             [['user_id', 'access_expires', 'refresh_expires'], 'integer'],
             [['access_token', 'refresh_token'], 'string', 'max' => 1000],
-            [['refresh_token'], 'unique'],
             [['access_token', 'refresh_token'], 'unique'],
             [['access_expires', 'refresh_expires'], 'default', 'value' => 0, 'skipOnEmpty' => false],
         ];
