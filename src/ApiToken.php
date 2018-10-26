@@ -38,6 +38,15 @@ class ApiToken extends ActiveRecord
 
     /**
      * @inheritdoc
+     * @return ApiTokenQuery the active query used by this AR class.
+     */
+    public static function find(): ApiTokenQuery
+    {
+        return new ApiTokenQuery(self::class);
+    }
+
+    /**
+     * @inheritdoc
      */
     public function rules(): array
     {
@@ -62,14 +71,5 @@ class ApiToken extends ActiveRecord
             'access_expires'  => Yii::t('app', 'Access Expires'),
             'refresh_expires' => Yii::t('app', 'Refresh Expires'),
         ];
-    }
-
-    /**
-     * @inheritdoc
-     * @return ApiTokenQuery the active query used by this AR class.
-     */
-    public static function find(): ApiTokenQuery
-    {
-        return new ApiTokenQuery(self::class);
     }
 }
