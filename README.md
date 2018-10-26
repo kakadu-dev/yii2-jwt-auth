@@ -1,14 +1,15 @@
 # yii2-jwt-auth
+
 Yii2 JWT Auth
 
-Installation
-------------
+
+## Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
 Either run
 
-```
+```bash
 php composer.phar require --prefer-dist kakadu-dev/yii2-jwt-auth "@dev"
 ```
 
@@ -20,8 +21,8 @@ or add
 
 to the require section of your `composer.json` file.
 
-Usage
------
+
+## Usage
 
 Once the extension is installed, simply use it in your code by:
 
@@ -132,21 +133,21 @@ class SecureController extends yii\rest\Controller
 ```
 
 
-**Procedure:**    
+**Procedure:**
 
- - a. seamlessLogin is false    
-           1. Register, get access and refresh token and save their on client side.  
-           2. Use only access token for request to security endpoint.  
-           3. After access token expired, you get 401 Unauthorized exception  
-           _4. Use expire access and not expire refresh token to get new tokens._ (/refresh-token  url)  
-           5. If refresh token expire, go to sign in  
-   
- - b. seamlessLogin is true   
-           1. Register, get access and refresh token and save their on client side.  
-           2. Use only access token for request to security endpoint.  
-           3. After access token expired, you get 401 Unauthorized exception  
-           _4. Repeat request use expire access and not expire refresh token to get new tokens._ (/same url)  
-           5. If refresh token expire, go to sign in
+- a. seamlessLogin is false
+       1. Register, get access and refresh token and save their on client side.
+       1. Use only access token for request to security endpoint.
+       1. After access token expired, you get 401 Unauthorized exception.
+       1. _Use expire access and not expire refresh token to get new tokens._ (/refresh-token  url)  
+       1. If refresh token expire, go to sign in  
+
+- b. seamlessLogin is true
+       1. Register, get access and refresh token and save their on client side.
+       1. Use only access token for request to security endpoint.
+       1. After access token expired, you get 401 Unauthorized exception.
+       1. _Repeat request use expire access and not expire refresh token to get new tokens._ (/same url)
+       1. If refresh token expire, go to sign in.
 
 
 That's all. Check it.
