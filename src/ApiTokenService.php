@@ -301,7 +301,7 @@ class ApiTokenService extends Component
 
             if (
                 (is_string($allowAud) && $allowAud !== $issuer) ||
-                (is_array($allowAud) && !in_array($issuer, $allowAud))
+                (is_array($allowAud) && !in_array($issuer, $allowAud, true))
             ) {
                 throw new \UnexpectedValueException('Invalid issuer');
             }
@@ -337,10 +337,9 @@ class ApiTokenService extends Component
             return [];
         }
 
-        if (null === $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($tks[1]))) {
-            if ($throwErrors) {
-                throw new \UnexpectedValueException('Invalid claims encoding');
-            }
+        $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($tks[1]));
+        if ($payload === null && $throwErrors) {
+            throw new \UnexpectedValueException('Invalid claims encoding');
         }
 
         return (array) $payload;

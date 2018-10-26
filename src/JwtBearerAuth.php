@@ -139,13 +139,11 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $authHeader = $request->headers->get($this->header);
 
-        if ($authHeader !== null) {
-            if ($this->pattern !== null) {
-                if (preg_match($this->pattern, $authHeader, $matches)) {
-                    $authHeader = $matches[1];
-                } else {
-                    return null;
-                }
+        if ($authHeader !== null && $this->pattern !== null) {
+            if (preg_match($this->pattern, $authHeader, $matches)) {
+                $authHeader = $matches[1];
+            } else {
+                return null;
             }
         }
 
@@ -159,7 +157,7 @@ class JwtBearerAuth extends HttpBearerAuth
      *
      * @throws UnauthorizedHttpException
      */
-    protected function failure($response)
+    protected function failure($response): void
     {
         $this->challenge($response);
         $this->handleFailure($response);
