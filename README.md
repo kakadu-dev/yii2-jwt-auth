@@ -53,7 +53,7 @@ return [
             'secretKey' => '', // set in main-local.php
             'issuer'    => 'you-domain-name', // or yii-params.domain
             'audience'  => ['you-domain-name'], // or yii-params.domain
-            'seamless_login' => false,
+            'seamlessLogin' => false,
         ],
     ],
 ];
@@ -87,7 +87,7 @@ class AuthController extends yii\rest\Controller
     
     /**
      * Autologin, if access token expired and refresh token not expired.
-     * This action needed only if 'seamless_login' set to false.
+     * This action needed only if 'seamlessLogin' set to false.
      */
     public function actionRefreshTokens()
     {
@@ -134,14 +134,14 @@ class SecureController extends yii\rest\Controller
 
 **Procedure:**    
 
- - a. seamless_login is false    
+ - a. seamlessLogin is false    
            1. Register, get access and refresh token and save their on client side.  
            2. Use only access token for request to security endpoint.  
            3. After access token expired, you get 401 Unauthorized exception  
            _4. Use expire access and not expire refresh token to get new tokens._ (/refresh-token  url)  
            5. If refresh token expire, go to sign in  
    
- - b. seamless_login is true   
+ - b. seamlessLogin is true   
            1. Register, get access and refresh token and save their on client side.  
            2. Use only access token for request to security endpoint.  
            3. After access token expired, you get 401 Unauthorized exception  

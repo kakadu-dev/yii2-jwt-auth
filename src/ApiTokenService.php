@@ -75,14 +75,14 @@ class ApiTokenService extends Component
      *
      * @var bool
      */
-    public $seamless_login = true;
+    public $seamlessLogin = true;
 
     /**
      * Auto delete expired token
      *
      * @var bool
      */
-    public $delete_expired = true;
+    public $deleteExpired = true;
 
     /**
      * Create api token
@@ -348,7 +348,7 @@ class ApiTokenService extends Component
 
     /**
      * Delete api token by access or refresh jwt
-     * Delete expired tokens: @see delete_expired
+     * Delete expired tokens: @see deleteExpired
      *
      * @param string|null $jwtToken
      *
@@ -361,7 +361,7 @@ class ApiTokenService extends Component
                 ['access_token' => $jwtToken],
                 ['refresh_token' => $jwtToken],
                 // Delete expired tokens
-                $this->delete_expired ? [
+                $this->deleteExpired ? [
                     'AND',
                     ['<=', 'refresh_expires', time()],
                     ['!=', 'refresh_expires', 0],

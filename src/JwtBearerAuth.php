@@ -8,7 +8,6 @@
 
 namespace Kakadu\Yii2JwtAuth;
 
-use Yii;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\Request;
 use yii\web\Response;
@@ -45,7 +44,7 @@ class JwtBearerAuth extends HttpBearerAuth
     /**
      * @inheritdoc
      *
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      */
     public function authenticate($user, $request, $response)
@@ -57,12 +56,12 @@ class JwtBearerAuth extends HttpBearerAuth
         }
 
         if ($jwtAccessToken->isExpired()) {
-            if (!Yii::$app->apiTokens->seamless_login) {
+            if (!Yii::$app->apiTokens->seamlessLogin) {
                 $this->failure($response);
             }
 
             // Seamless login
-            $jwtRefresh  = $this->getJwtRefreshHeaderToken($request);
+            $jwtRefresh = $this->getJwtRefreshHeaderToken($request);
             $newApiToken = Yii::$app->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
 
             if (!$newApiToken) {
