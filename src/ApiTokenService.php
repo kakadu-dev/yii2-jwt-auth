@@ -87,12 +87,12 @@ class ApiTokenService extends Component
     /**
      * Create api token
      *
-     * @param int   $user_id
+     * @param int   $userId
      * @param array $params
      *
      * @return ApiToken|null
      */
-    public function create(int $user_id, array $params = []): ?ApiToken
+    public function create(int $userId, array $params = []): ?ApiToken
     {
         $issuer   = $this->getIssuer();
         $audience = $this->getAudience();
@@ -101,7 +101,7 @@ class ApiTokenService extends Component
         $refreshExpires = 0;
 
         $jwtAccessParams = [
-            'user_id' => $user_id,
+            'user_id' => $userId,
         ];
 
         if ($issuer) {
@@ -118,7 +118,7 @@ class ApiTokenService extends Component
         }
 
         $jwtRefreshParams = [
-            'user_id'      => $user_id,
+            'user_id'      => $userId,
             'refreshToken' => true,
         ];
 
@@ -130,7 +130,7 @@ class ApiTokenService extends Component
         $accessToken = ArrayHelper::merge($params, $jwtAccessParams);
 
         $newToken = new ApiToken([
-            'user_id'         => $user_id,
+            'user_id'         => $userId,
             'access_token'    => JWT::encode($accessToken, $this->secretKey, $this->alg),
             'refresh_token'   => JWT::encode($jwtRefreshParams, $this->secretKey, $this->alg),
             'access_expires'  => $accessExpires,
