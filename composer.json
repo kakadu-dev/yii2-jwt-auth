@@ -2,12 +2,24 @@
   "name": "kakadu-dev/yii2-jwt-auth",
   "description": "Extension provide JWT auth for Yii2",
   "type": "yii2-extension",
-  "keywords": ["yii2","extension","jwt","auth","api"],
+  "keywords": [
+    "yii2",
+    "extension",
+    "jwt",
+    "auth",
+    "api"
+  ],
   "license": "MIT",
   "authors": [
     {
       "name": "Ярмолюк Михаил",
       "email": "lukomi@mail.ru"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
     }
   ],
   "require": {
@@ -19,5 +31,8 @@
     "psr-4": {
       "Kakadu\\Yii2JwtAuth\\": "src/"
     }
+  },
+  "config": {
+    "sort-packages": true
   }
 }
