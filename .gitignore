@@ -1,1 +1,34 @@
+# General
+build
+docs
+vendor
+composer.lock
+
+# tests
+codecept
+tests/_support/_generated/*
+tests/_data/*
+tests/_output/*
+coverage
+coverage.xml
+
+# Cache directories
+Thumbs.db
+*.DS_Store
+*.empty
+
+# PhpStorm project files
 .idea
+
+# Netbeans project files
+nbproject
+
+# Eclipse, zend studio, aptana or other eclipse like project files
+.buildpath
+.project
+.settings
+
+
+# Mac deployment helpers
+switch
+index
