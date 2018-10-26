@@ -20,33 +20,11 @@ use yii\db\BatchQueryResult;
  * This is the ActiveQuery class for [[ApiToken]].
  *
  * @see     ApiToken
+ *
+ * @method ApiToken[]|array all($db = null)
+ * @method ApiToken|array|null one($db = null)
+ * @method ApiToken[]|BatchQueryResult each($batchSize = 100, $db = null)
  */
 class ApiTokenQuery extends ActiveQuery
 {
-    /**
-     * @inheritdoc
-     * @return ApiToken[]|array
-     */
-    public function all($db = null)
-    {
-        return parent::all($db);
-    }
-
-    /**
-     * @inheritdoc
-     * @return ApiToken|array|NULL
-     */
-    public function one($db = null)
-    {
-        return parent::one($db);
-    }
-
-    /**
-     * @inheritdoc
-     * @return ApiToken[]|BatchQueryResult
-     */
-    public function each($batchSize = 100, $db = null)
-    {
-        return parent::each($batchSize, $db);
-    }
 }
