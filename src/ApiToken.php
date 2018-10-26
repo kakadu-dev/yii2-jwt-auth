@@ -70,6 +70,6 @@ class ApiToken extends ActiveRecord
      */
     public static function find(): ApiTokenQuery
     {
-        return new ApiTokenQuery(get_called_class());
+        return new ApiTokenQuery(self::class);
     }
 }
