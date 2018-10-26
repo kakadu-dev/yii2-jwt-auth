@@ -8,6 +8,7 @@
 
 namespace Kakadu\Yii2JwtAuth;
 
+use yii\di\Instance;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\Request;
 use yii\web\Response;
@@ -42,6 +43,23 @@ class JwtBearerAuth extends HttpBearerAuth
     public $jwtRefreshHeader = 'Jwt-Refresh-Token';
 
     /**
+     * Token component name or instance
+     * @var ApiTokenService|string
+     */
+    public $apiTokens = 'apiTokens';
+
+    /**
+     * @inheritdoc
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function init(): void
+    {
+        parent::init();
+
+        $this->apiTokens = Instance::ensure($this->apiTokens, ApiTokenService::class);
+    }
+
+    /**
      * @inheritdoc
      *
      * @param Request $request
@@ -56,13 +74,13 @@ class JwtBearerAuth extends HttpBearerAuth
         }
 
         if ($jwtAccessToken->isExpired()) {
-            if (!Yii::$app->apiTokens->seamlessLogin) {
+            if (!$this->apiTokens->seamlessLogin) {
                 $this->failure($response);
             }
 
             // Seamless login
             $jwtRefresh = $this->getJwtRefreshHeaderToken($request);
-            $newApiToken = Yii::$app->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
+            $newApiToken = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
 
             if (!$newApiToken) {
                 $this->failure($response);
@@ -93,7 +111,7 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $jwtToken = $this->getAuthHeader($request);
 
-        return Yii::$app->apiTokens->getJwtToken($jwtToken);
+        return $this->apiTokens->getJwtToken($jwtToken);
     }
 
     /**
@@ -107,7 +125,7 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $jwtRefreshToken = $request->headers->get($this->headerRefresh);
 
-        return Yii::$app->apiTokens->getJwtToken($jwtRefreshToken);
+        return $this->apiTokens->getJwtToken($jwtRefreshToken);
     }
 
     /**
