@@ -237,7 +237,7 @@ class ApiTokenService extends Component
      */
     public function renewJwtToken(JwtToken $accessToken, JwtToken $refreshToken): ?ApiToken
     {
-        $oldToken = $this->getApiToken($accessToken->getJwtToken());
+        $oldToken = ApiToken::findOne(['access_token' => $accessToken->getJwtToken()]);
 
         if (!$oldToken || $oldToken->refresh_token !== $refreshToken->getJwtToken()) {
             return null;
@@ -252,29 +252,7 @@ class ApiTokenService extends Component
         $userID = $accessToken->getUserID();
         $params = $accessToken->getJwtDecodedToken();
 
-        $apiToken = $this->create($userID, $params);
-
-        return $apiToken;
-    }
-
-    /**
-     * Get api token
-     *
-     * @param string $accessToken
-     *
-     * @return ApiToken|null
-     */
-    public function getApiToken(string $accessToken): ?ApiToken
-    {
-        return ApiToken::find()->where([
-            'AND',
-            ['access_token' => $accessToken],
-            [
-                'OR',
-                ['>', 'access_expires', time()],
-                ['=', 'access_expires', 0],
-            ],
-        ])->one();
+        return $this->create($userID, $params);
     }
 
     /**
