@@ -127,7 +127,7 @@ class ApiTokenService extends Component
             $jwtRefreshParams['exp'] = $refreshExpires;
         }
 
-        $accessToken = ArrayHelper::merge($params, $jwtAccessParams);
+        $accessToken = array_replace($params, $jwtAccessParams);
 
         $newToken = new ApiToken([
             'user_id'         => $userId,
