@@ -61,9 +61,6 @@ class JwtBearerAuth extends HttpBearerAuth
 
     /**
      * @inheritdoc
-     *
-     * @param Request $request
-     * @param Response $response
      */
     public function authenticate($user, $request, $response)
     {
@@ -78,26 +75,49 @@ class JwtBearerAuth extends HttpBearerAuth
                 $this->failure($response);
             }
 
-            // Seamless login
-            $jwtRefresh = $this->getJwtRefreshHeaderToken($request);
-            $newApiToken = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
-
-            if (!$newApiToken) {
+            if (!$this->renewToken($request, $response)) {
                 $this->failure($response);
             }
-
-            // Add new access and refresh token to response headers
-            $response->headers->set($this->jwtHeader, $newApiToken->access_token);
-            $response->headers->set($this->jwtRefreshHeader, $newApiToken->refresh_token);
-
-            $authHeader   = $request->headers->get($this->header);
-            $expiredToken = $this->getAuthHeader($request);
-
-            // Change expired access token to new
-            $request->headers->set($this->header, str_replace($expiredToken, $newApiToken->access_token, $authHeader));
         }
 
         return parent::authenticate($user, $request, $response);
+    }
+
+    /**
+     * Force renew existed token.
+     *
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return bool
+     */
+    public function renewToken(Request $request, Response $response): bool
+    {
+        $jwtAccessToken = $this->getJwtAuthToken($request);
+
+        if ($jwtAccessToken->isInvalid()) {
+            return false;
+        }
+
+        // Seamless login
+        $jwtRefresh  = $this->getJwtRefreshHeaderToken($request);
+        $newApiToken = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
+
+        if (!$newApiToken) {
+            return false;
+        }
+
+        // Add new access and refresh token to response headers
+        $response->headers->set($this->jwtHeader, $newApiToken->access_token);
+        $response->headers->set($this->jwtRefreshHeader, $newApiToken->refresh_token);
+
+        $authHeader   = $request->headers->get($this->header);
+        $expiredToken = $this->getAuthHeader($request);
+
+        // Change expired access token to new
+        $request->headers->set($this->header, str_replace($expiredToken, $newApiToken->access_token, $authHeader));
+
+        return true;
     }
 
     /**
