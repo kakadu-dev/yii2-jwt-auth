@@ -25,7 +25,8 @@
   "require": {
     "php": ">=7.1",
     "yiisoft/yii2": "~2.0.15",
-    "firebase/php-jwt": "^5.0"
+    "firebase/php-jwt": "^5.0",
+    "ext-json": "*"
   },
   "autoload": {
     "psr-4": {

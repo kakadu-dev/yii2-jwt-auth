@@ -9,9 +9,11 @@
 namespace Kakadu\Yii2JwtAuth;
 
 use Firebase\JWT\ExpiredException;
+use Firebase\JWT\JWT;
 use yii\base\Component;
-use \Firebase\JWT\JWT;
-use yii\helpers\ArrayHelper;
+use yii\di\Instance;
+use yii\log\Dispatcher;
+use yii\log\Logger;
 
 /**
  * Class    ApiTokenService
@@ -52,7 +54,7 @@ class ApiTokenService extends Component
      *
      * @var string|array|null
      */
-    public $audience = null;
+    public $audience;
 
     /**
      * Allow validate jwt token other issuer
@@ -85,6 +87,33 @@ class ApiTokenService extends Component
     public $deleteExpired = true;
 
     /**
+     * @var Dispatcher|string|null
+     */
+    public $log = 'log';
+
+    /**
+     * @var string
+     */
+    public $logCategory = 'jwt-auth';
+
+    /**
+     * ApiTokenService constructor.
+     *
+     * @param array $config
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function __construct(array $config = [])
+    {
+        parent::__construct($config);
+
+        if ($this->log !== null) {
+            $this->log = Instance::ensure($this->log, Dispatcher::class);
+        }
+    }
+
+
+    /**
      * Create api token
      *
      * @param int   $userId
@@ -100,21 +129,19 @@ class ApiTokenService extends Component
         $accessExpires  = 0;
         $refreshExpires = 0;
 
-        $jwtAccessParams = [
-            'user_id' => $userId,
-        ];
+        $params['user_id'] = $userId;
 
         if ($issuer) {
-            $jwtAccessParams['iss'] = $issuer;
+            $params['iss'] = $issuer;
         }
 
         if ($audience) {
-            $jwtAccessParams['aud'] = $audience;
+            $params['aud'] = $audience;
         }
 
         if ($this->expiration) {
-            $accessExpires          = time() + $this->expiration;
-            $jwtAccessParams['exp'] = $accessExpires;
+            $accessExpires = time() + $this->expiration;
+            $params['exp'] = $accessExpires;
         }
 
         $jwtRefreshParams = [
@@ -127,21 +154,21 @@ class ApiTokenService extends Component
             $jwtRefreshParams['exp'] = $refreshExpires;
         }
 
-        $accessToken = array_replace($params, $jwtAccessParams);
-
         $newToken = new ApiToken([
             'user_id'         => $userId,
-            'access_token'    => JWT::encode($accessToken, $this->secretKey, $this->alg),
+            'access_token'    => JWT::encode($params, $this->secretKey, $this->alg),
             'refresh_token'   => JWT::encode($jwtRefreshParams, $this->secretKey, $this->alg),
             'access_expires'  => $accessExpires,
             'refresh_expires' => $refreshExpires,
         ]);
 
-        if ($newToken->save()) {
-            return $newToken;
+        if (!$newToken->save()) {
+            $this->log(sprintf('new token not saved due errors: `%s`', json_encode($newToken->errors)), Logger::LEVEL_WARNING);
+
+            return null;
         }
 
-        return null;
+        return $newToken;
     }
 
     /**
@@ -237,17 +264,35 @@ class ApiTokenService extends Component
      */
     public function renewJwtToken(JwtToken $accessToken, JwtToken $refreshToken): ?ApiToken
     {
-        $oldToken = ApiToken::findOne(['access_token' => $accessToken->getJwtToken()]);
+        if ($accessToken->isInvalid()) {
+            $this->log(sprintf('access token for user#%d is invalid', $accessToken->getUserID()), Logger::LEVEL_WARNING);
 
-        if (!$oldToken || $oldToken->refresh_token !== $refreshToken->getJwtToken()) {
+            return null;
+        }
+        if ($refreshToken->isInvalid()) {
+            $this->log(sprintf('refresh token for user#%d is invalid', $accessToken->getUserID()), Logger::LEVEL_WARNING);
+
+            return null;
+        }
+        if ($refreshToken->isExpired()) {
+            $this->log(sprintf('refresh token for user#%d is expired', $accessToken->getUserID()), Logger::LEVEL_PROFILE);
+
+            return null;
+        }
+
+        $oldToken = ApiToken::findOne(['access_token' => $accessToken->getJwtToken()]);
+        if ($oldToken === null) {
+            $this->log(sprintf('old access token for user#%d not found', $accessToken->getUserID()), Logger::LEVEL_PROFILE);
+
+            return null;
+        }
+        if ($oldToken->refresh_token !== $refreshToken->getJwtToken()) {
+            $this->log('wrong refresh token', Logger::LEVEL_WARNING);
+
             return null;
         }
 
         $this->deleteToken($refreshToken->getJwtToken());
-
-        if ($accessToken->isInvalid() || $refreshToken->isInvalid() || $refreshToken->isExpired()) {
-            return null;
-        }
 
         $userID = $accessToken->getUserID();
         $params = $accessToken->getJwtDecodedToken();
@@ -277,9 +322,8 @@ class ApiTokenService extends Component
             $issuer   = $this->getIssuer();
             $allowAud = $payload['aud'] ?? null;
 
-            if (
-                (is_string($allowAud) && $allowAud !== $issuer) ||
-                (is_array($allowAud) && !in_array($issuer, $allowAud, true))
+            if ((is_string($allowAud) && $allowAud !== $issuer)
+                || (is_array($allowAud) && !in_array($issuer, $allowAud, true))
             ) {
                 throw new \UnexpectedValueException('Invalid issuer');
             }
@@ -344,5 +388,18 @@ class ApiTokenService extends Component
                     ['!=', 'refresh_expires', 0],
                 ] : [],
             ]) > 0;
+    }
+
+    /**
+     * @param string $message
+     * @param int    $level
+     */
+    private function log(string $message, int $level): void
+    {
+        if ($this->log === null) {
+            return;
+        }
+
+        $this->log->logger->log($message, $level, $this->logCategory);
     }
 }
