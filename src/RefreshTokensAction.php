@@ -61,7 +61,7 @@ class RefreshTokensAction extends Action
 
         $this->apiTokens = Instance::ensure($this->apiTokens, ApiTokenService::class);
         $this->response  = Instance::ensure($this->response, Response::class);
-        $this->response  = Instance::ensure($this->request, Request::class);
+        $this->request   = Instance::ensure($this->request, Request::class);
     }
 
     /**
