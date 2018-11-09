@@ -27,12 +27,12 @@ class RefreshTokensAction extends Action
     public $apiTokens = 'apiTokens';
 
     /**
-     * @var Request|string response component name or instance
+     * @var Response|string response component name or instance
      */
     public $response = 'response';
 
     /**
-     * @var string request component name or instance
+     * @var Request|string request component name or instance
      */
     public $request = 'request';
 

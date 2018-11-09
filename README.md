@@ -108,6 +108,47 @@ class AuthController extends yii\rest\Controller
 }
 ```
 
+or use renew tokens action:
+```php
+use Kakadu\Yii2JwtAuth\RefreshTokensAction;
+
+class AuthController extends yii\rest\Controller
+{
+    /**
+     * @inheritdoc
+     */
+    public function behaviors(): array
+    {
+        return ArrayHelper::merge(parent::behaviors(), [
+            'authenticator' => [
+                'class'  => JwtBearerAuth::class,
+                'except' => ['renew-token'],
+            ],
+            'access'        => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'allow'   => true,
+                        'actions' => ['renew-token'],
+                        'roles'   => ['?'],
+                    ],
+                ],
+            ],
+        ];
+    }
+            
+    /**
+     * @inheritdoc
+     */
+    public function actions(): array
+    {
+        return ArrayHelper::merge(parent::actions(), [
+            'renew-token' => RefreshTokensAction::class,
+        ]);
+    }
+}
+```
+
 And finally add Jwt Auth to secure controller:
 ```php
 class SecureController extends yii\rest\Controller
