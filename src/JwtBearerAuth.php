@@ -43,8 +43,7 @@ class JwtBearerAuth extends HttpBearerAuth
     public $jwtRefreshHeader = 'Jwt-Refresh-Token';
 
     /**
-     * Token component name or instance
-     * @var ApiTokenService|string
+     * @var ApiTokenService|string token component name or instance
      */
     public $apiTokens = 'apiTokens';
 
