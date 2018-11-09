@@ -12,6 +12,7 @@ use yii\base\Action;
 use yii\di\Instance;
 use yii\web\Request;
 use yii\web\Response;
+use yii\web\UnauthorizedHttpException;
 
 /**
  * Class    RefreshTokensAction
@@ -79,6 +80,10 @@ class RefreshTokensAction extends Action
 
         // Renew
         $newTokens = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefreshToken);
+
+        if (!$newTokens) {
+            throw new UnauthorizedHttpException('Your request was made with invalid credentials.');
+        }
 
         JwtBearerAuth::addJwtToHeader($this->response, $newTokens);
     }
