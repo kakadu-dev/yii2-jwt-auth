@@ -91,7 +91,7 @@ class RefreshTokensAction extends Action
     protected function getTokens(): array
     {
         return [
-            'accessToken'  => $this->getAuthHeader($this->request->headers->get($this->accessToken)),
+            'accessToken'  => $this->getJwtTokenString($this->request->headers->get($this->accessToken)),
             'refreshToken' => $this->request->headers->get($this->headerRefresh),
         ];
     }
