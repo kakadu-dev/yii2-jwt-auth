@@ -65,7 +65,7 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $jwtAccessToken = $this->getJwtAuthToken($request);
 
-        if ($jwtAccessToken->isInvalid()) {
+        if ($jwtAccessToken === null || $jwtAccessToken->isInvalid()) {
             $this->failure($response);
         }
 
@@ -94,12 +94,17 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $jwtAccessToken = $this->getJwtAuthToken($request);
 
-        if ($jwtAccessToken->isInvalid()) {
+        if ($jwtAccessToken === null || $jwtAccessToken->isInvalid()) {
             return false;
         }
 
         // Seamless login
-        $jwtRefresh  = $this->getJwtRefreshHeaderToken($request);
+        $jwtRefresh = $this->getJwtRefreshHeaderToken($request);
+
+        if ($jwtRefresh === null) {
+            return false;
+        }
+
         $newApiToken = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefresh);
 
         if (!$newApiToken) {
@@ -124,13 +129,16 @@ class JwtBearerAuth extends HttpBearerAuth
      *
      * @param Request $request
      *
-     * @return JwtToken
+     * @return JwtToken|null
      */
-    protected function getJwtAuthToken($request): JwtToken
+    protected function getJwtAuthToken($request): ?JwtToken
     {
-        $jwtToken = $this->getAuthHeader($request);
+        $token = $this->getAuthHeader($request);
+        if ($token === null) {
+            return null;
+        }
 
-        return $this->apiTokens->getJwtToken($jwtToken);
+        return $this->apiTokens->getJwtToken($token);
     }
 
     /**
@@ -138,13 +146,16 @@ class JwtBearerAuth extends HttpBearerAuth
      *
      * @param Request $request
      *
-     * @return JwtToken
+     * @return JwtToken|null
      */
-    protected function getJwtRefreshHeaderToken($request): JwtToken
+    protected function getJwtRefreshHeaderToken($request): ?JwtToken
     {
-        $jwtRefreshToken = $request->headers->get($this->headerRefresh);
+        $token = $request->headers->get($this->headerRefresh);
+        if ($token === null) {
+            return null;
+        }
 
-        return $this->apiTokens->getJwtToken($jwtRefreshToken);
+        return $this->apiTokens->getJwtToken($token);
     }
 
     /**
