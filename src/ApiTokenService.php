@@ -120,6 +120,7 @@ class ApiTokenService extends Component
      * @param array $params
      *
      * @return ApiToken|null
+     * @throws \yii\db\Exception
      */
     public function create(int $userId, array $params = []): ?ApiToken
     {
@@ -162,13 +163,38 @@ class ApiTokenService extends Component
             'refresh_expires' => $refreshExpires,
         ]);
 
-        if (!$newToken->save()) {
+        $existedToken = $this->findExistedToken($newToken);
+        if ($existedToken !== null) {
+            return $existedToken;
+        }
+
+        if (!$newToken->validate()) {
             $this->log(sprintf('new token not saved due errors: `%s`', json_encode($newToken->errors)), Logger::LEVEL_WARNING);
 
             return null;
         }
 
-        return $newToken;
+        ApiToken::getDb()->createCommand()
+            ->upsert(ApiToken::tableName(), $newToken->attributes, $newToken->attributes)
+            ->execute();
+
+        return $this->findExistedToken($newToken);
+    }
+
+    /**
+     * Search existed token. Useful for concurrent requests
+     *
+     * @param ApiToken $token
+     *
+     * @return ApiToken|null
+     */
+    private function findExistedToken(ApiToken $token): ?ApiToken
+    {
+        return ApiToken::findOne([
+            'user_id'         => $token->user_id,
+            'access_token'    => $token->access_token,
+            'refresh_expires' => $token->refresh_expires,
+        ]);
     }
 
     /**
