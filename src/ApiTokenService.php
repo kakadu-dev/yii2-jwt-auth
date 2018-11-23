@@ -248,6 +248,7 @@ class ApiTokenService extends Component
             $inParams = explode('yii-params.', $item);
 
             if (!empty($inParams[1])) {
+                unset($audienceSecrets[$item]);
                 $audienceSecrets[\Yii::$app->params[$inParams[1]] ?? $item] = $value;
             }
         }

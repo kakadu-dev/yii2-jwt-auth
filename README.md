@@ -108,6 +108,47 @@ class AuthController extends yii\rest\Controller
 }
 ```
 
+or use renew tokens action:
+```php
+use Kakadu\Yii2JwtAuth\RefreshTokensAction;
+
+class AuthController extends yii\rest\Controller
+{
+    /**
+     * @inheritdoc
+     */
+    public function behaviors(): array
+    {
+        return ArrayHelper::merge(parent::behaviors(), [
+            'authenticator' => [
+                'class'  => JwtBearerAuth::class,
+                'except' => ['renew-token'],
+            ],
+            'access'        => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'allow'   => true,
+                        'actions' => ['renew-token'],
+                        'roles'   => ['?'],
+                    ],
+                ],
+            ],
+        ];
+    }
+            
+    /**
+     * @inheritdoc
+     */
+    public function actions(): array
+    {
+        return ArrayHelper::merge(parent::actions(), [
+            'renew-token' => RefreshTokensAction::class,
+        ]);
+    }
+}
+```
+
 And finally add Jwt Auth to secure controller:
 ```php
 class SecureController extends yii\rest\Controller
@@ -135,19 +176,19 @@ class SecureController extends yii\rest\Controller
 
 **Procedure:**
 
-- a. seamlessLogin is false
-       1. Register, get access and refresh token and save their on client side.
-       1. Use only access token for request to security endpoint.
-       1. After access token expired, you get 401 Unauthorized exception.
-       1. _Use expire access and not expire refresh token to get new tokens._ (/refresh-token  url)  
-       1. If refresh token expire, go to sign in  
+- seamlessLogin is false
+    1. Register, get access and refresh token and save their on client side.
+    1. Use only access token for request to security endpoint.
+    1. After access token expired, you get 401 Unauthorized exception.
+    1. _Use expire access and not expire refresh token to get new tokens._ (/refresh-token  url)  
+    1. If refresh token expire, go to sign in  
 
-- b. seamlessLogin is true
-       1. Register, get access and refresh token and save their on client side.
-       1. Use only access token for request to security endpoint.
-       1. After access token expired, you get 401 Unauthorized exception.
-       1. _Repeat request use expire access and not expire refresh token to get new tokens._ (/same url)
-       1. If refresh token expire, go to sign in.
+- seamlessLogin is true
+    1. Register, get access and refresh token and save their on client side.
+    1. Use only access token for request to security endpoint.
+    1. After access token expired, you get 401 Unauthorized exception.
+    1. _Repeat request use expire access and not expire refresh token to get new tokens._ (/same url)
+    1. If refresh token expire, go to sign in.
 
 
 That's all. Check it.
