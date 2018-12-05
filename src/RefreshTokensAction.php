@@ -69,20 +69,30 @@ class RefreshTokensAction extends Action
      * Renew tokens
      *
      * @return void
+     * @throws UnauthorizedHttpException
      */
     public function run(): void
     {
-        list('accessToken' => $accessToken, 'refreshToken' => $refreshToken) = $this->getTokens();
+        ['accessToken' => $accessToken, 'refreshToken' => $refreshToken] = $this->getTokens();
+        if ($accessToken === null || $refreshToken === null) {
+            // TODO: set correct message.
+            throw new UnauthorizedHttpException(\Yii::t('app', 'Your request was made with invalid credentials.'));
+        }
 
         // Convert to jwt token model
-        $jwtAccessToken  = $this->apiTokens->getJwtToken($accessToken);
-        $jwtRefreshToken = $this->apiTokens->getJwtToken($refreshToken);
+        $accessToken  = $this->apiTokens->getJwtToken($accessToken);
+        $refreshToken = $this->apiTokens->getJwtToken($refreshToken);
+        if ($accessToken === null || $refreshToken === null) {
+            // TODO: set correct message.
+            throw new UnauthorizedHttpException(\Yii::t('app', 'Your request was made with invalid credentials.'));
+        }
 
         // Renew
-        $newTokens = $this->apiTokens->renewJwtToken($jwtAccessToken, $jwtRefreshToken);
+        $newTokens = $this->apiTokens->renewJwtToken($accessToken, $refreshToken);
 
         if (!$newTokens) {
-            throw new UnauthorizedHttpException('Your request was made with invalid credentials.');
+            // TODO: set correct message.
+            throw new UnauthorizedHttpException(\Yii::t('app', 'Your request was made with invalid credentials.'));
         }
 
         JwtBearerAuth::addJwtToHeader($this->response, $newTokens);
@@ -96,7 +106,7 @@ class RefreshTokensAction extends Action
     protected function getTokens(): array
     {
         return [
-            'accessToken'  => $this->getJwtTokenString($this->request->headers->get($this->accessToken)),
+            'accessToken'  => $this->getTokenString($this->request->headers->get($this->accessToken)),
             'refreshToken' => $this->request->headers->get($this->headerRefresh),
         ];
     }
@@ -108,16 +118,20 @@ class RefreshTokensAction extends Action
      *
      * @return null|string
      */
-    protected function getJwtTokenString(string $authHeader): ?string
+    protected function getTokenString(string $authHeader): ?string
     {
-        if ($authHeader !== null && $this->pattern !== null) {
-            if (preg_match($this->pattern, $authHeader, $matches)) {
-                $authHeader = $matches[1];
-            } else {
-                return null;
-            }
+        if ($authHeader === '') {
+            return null;
         }
 
-        return $authHeader;
+        if ($this->pattern === null) {
+            return $authHeader;
+        }
+
+        if (!preg_match($this->pattern, $authHeader, $matches)) {
+            return null;
+        }
+
+        return $matches[1] ?? null;
     }
 }
