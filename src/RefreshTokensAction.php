@@ -108,7 +108,7 @@ class RefreshTokensAction extends Action
      *
      * @return null|string
      */
-    protected function getJwtTokenString(string $authHeader): ?string
+    protected function getJwtTokenString(?string $authHeader): ?string
     {
         if ($authHeader !== null && $this->pattern !== null) {
             if (preg_match($this->pattern, $authHeader, $matches)) {
