@@ -118,7 +118,7 @@ class RefreshTokensAction extends Action
      *
      * @return null|string
      */
-    protected function getTokenString(string $authHeader): ?string
+    protected function getTokenString(?string $authHeader): ?string
     {
         if ($authHeader === '') {
             return null;
