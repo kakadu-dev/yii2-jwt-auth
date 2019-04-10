@@ -48,6 +48,35 @@ class JwtBearerAuth extends HttpBearerAuth
     public $apiTokens = 'apiTokens';
 
     /**
+     * Add api token to header
+     *
+     * @param Response      $response
+     * @param ApiToken|null $apiToken
+     * @param array         $params
+     *
+     * @return void
+     */
+    public static function addJwtToHeader($response, ApiToken $apiToken = null, array $params = []): void
+    {
+        if (!$apiToken) {
+            return;
+        }
+
+        $authInstance = new self();
+
+        $headerAccessTokenName  = $params['accessHeader'] ?? $authInstance->jwtHeader;
+        $headerRefreshTokenName = $params['refreshHeader'] ?? $authInstance->jwtRefreshHeader;
+
+        if (!($params['disableAccess'] ?? null)) {
+            $response->headers->set($headerAccessTokenName, $apiToken->access_token);
+        }
+
+        if (!($params['disableRefresh'] ?? null)) {
+            $response->headers->set($headerRefreshTokenName, $apiToken->refresh_token);
+        }
+    }
+
+    /**
      * @inheritdoc
      * @throws \yii\base\InvalidConfigException
      */
@@ -65,7 +94,11 @@ class JwtBearerAuth extends HttpBearerAuth
     {
         $jwtAccessToken = $this->getJwtAuthToken($request);
 
-        if ($jwtAccessToken === null || $jwtAccessToken->isInvalid()) {
+        if ($jwtAccessToken === null) {
+            return null;
+        }
+
+        if ($jwtAccessToken->isInvalid()) {
             $this->failure($response);
         }
 
@@ -80,6 +113,59 @@ class JwtBearerAuth extends HttpBearerAuth
         }
 
         return parent::authenticate($user, $request, $response);
+    }
+
+    /**
+     * Get jwt auth token from headers
+     *
+     * @param Request $request
+     *
+     * @return JwtToken|null
+     */
+    protected function getJwtAuthToken($request): ?JwtToken
+    {
+        $token = $this->getAuthHeader($request);
+
+        if ($token === null) {
+            return null;
+        }
+
+        return $this->apiTokens->getJwtToken($token);
+    }
+
+    /**
+     * Get header
+     *
+     * @param Request $request
+     *
+     * @return null|string
+     */
+    protected function getAuthHeader($request): ?string
+    {
+        $authHeader = $request->headers->get($this->header);
+
+        if ($authHeader !== null && $this->pattern !== null) {
+            if (preg_match($this->pattern, $authHeader, $matches)) {
+                $authHeader = $matches[1];
+            } else {
+                return null;
+            }
+        }
+
+        return $authHeader;
+    }
+
+    /**
+     * Failure jwt
+     *
+     * @param Response $response
+     *
+     * @throws UnauthorizedHttpException
+     */
+    protected function failure($response): void
+    {
+        $this->challenge($response);
+        $this->handleFailure($response);
     }
 
     /**
@@ -125,23 +211,6 @@ class JwtBearerAuth extends HttpBearerAuth
     }
 
     /**
-     * Get jwt auth token from headers
-     *
-     * @param Request $request
-     *
-     * @return JwtToken|null
-     */
-    protected function getJwtAuthToken($request): ?JwtToken
-    {
-        $token = $this->getAuthHeader($request);
-        if ($token === null) {
-            return null;
-        }
-
-        return $this->apiTokens->getJwtToken($token);
-    }
-
-    /**
      * Get jwt refresh token from headers
      *
      * @param Request $request
@@ -156,69 +225,5 @@ class JwtBearerAuth extends HttpBearerAuth
         }
 
         return $this->apiTokens->getJwtToken($token);
-    }
-
-    /**
-     * Get header
-     *
-     * @param Request $request
-     *
-     * @return null|string
-     */
-    protected function getAuthHeader($request): ?string
-    {
-        $authHeader = $request->headers->get($this->header);
-
-        if ($authHeader !== null && $this->pattern !== null) {
-            if (preg_match($this->pattern, $authHeader, $matches)) {
-                $authHeader = $matches[1];
-            } else {
-                return null;
-            }
-        }
-
-        return $authHeader;
-    }
-
-    /**
-     * Failure jwt
-     *
-     * @param Response $response
-     *
-     * @throws UnauthorizedHttpException
-     */
-    protected function failure($response): void
-    {
-        $this->challenge($response);
-        $this->handleFailure($response);
-    }
-
-    /**
-     * Add api token to header
-     *
-     * @param Response      $response
-     * @param ApiToken|null $apiToken
-     * @param array         $params
-     *
-     * @return void
-     */
-    public static function addJwtToHeader($response, ApiToken $apiToken = null, array $params = []): void
-    {
-        if (!$apiToken) {
-            return;
-        }
-
-        $authInstance = new self();
-
-        $headerAccessTokenName  = $params['accessHeader'] ?? $authInstance->jwtHeader;
-        $headerRefreshTokenName = $params['refreshHeader'] ?? $authInstance->jwtRefreshHeader;
-
-        if (!($params['disableAccess'] ?? null)) {
-            $response->headers->set($headerAccessTokenName, $apiToken->access_token);
-        }
-
-        if (!($params['disableRefresh'] ?? null)) {
-            $response->headers->set($headerRefreshTokenName, $apiToken->refresh_token);
-        }
     }
 }
