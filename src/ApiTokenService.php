@@ -405,21 +405,21 @@ class ApiTokenService extends Component
      *
      * @param string|null $jwtToken
      *
-     * @return bool
+     * @return int number of deleted tokens, may be 0
      */
-    public function deleteToken(string $jwtToken = null): bool
+    public function deleteToken(string $jwtToken = null): int
     {
         return ApiToken::deleteAll([
-                'OR',
-                ['access_token' => $jwtToken],
-                ['refresh_token' => $jwtToken],
-                // Delete expired tokens
-                $this->deleteExpired ? [
-                    'AND',
-                    ['<=', 'refresh_expires', time()],
-                    ['!=', 'refresh_expires', 0],
-                ] : [],
-            ]) > 0;
+            'OR',
+            ['access_token' => $jwtToken],
+            ['refresh_token' => $jwtToken],
+            // Delete expired tokens
+            $this->deleteExpired ? [
+                'AND',
+                ['<=', 'refresh_expires', time()],
+                ['!=', 'refresh_expires', 0],
+            ] : [],
+        ]);
     }
 
     /**
