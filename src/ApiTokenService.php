@@ -161,8 +161,8 @@ class ApiTokenService extends Component
 
         $newToken = new ApiToken([
             'user_id'         => $userId,
-            'access_token'    => JWT::encode($params, $this->secretKey, $this->alg),
-            'refresh_token'   => JWT::encode($jwtRefreshParams, $this->secretKey, $this->alg),
+            'access_token'    => JWT::encode($params, $this->getSecretKey(), $this->alg),
+            'refresh_token'   => JWT::encode($jwtRefreshParams, $this->getSecretKey(), $this->alg),
             'access_expires'  => $accessExpires,
             'refresh_expires' => $refreshExpires,
         ]);
@@ -202,19 +202,23 @@ class ApiTokenService extends Component
     }
 
     /**
+     * Get secret key
+     *
+     * @return string|null
+     */
+    private function getSecretKey(): ?string
+    {
+        return $this->getConfigValue($this->secretKey);
+    }
+
+    /**
      * Get jwt issuer
      *
      * @return string|null
      */
     private function getIssuer(): ?string
     {
-        $inParams = explode('yii-params.', $this->issuer);
-
-        if (!empty($inParams[1])) {
-            return Yii::$app->params[$inParams[1]] ?? $this->issuer;
-        }
-
-        return $this->issuer;
+        return $this->getConfigValue($this->issuer);
     }
 
     /**
@@ -227,13 +231,9 @@ class ApiTokenService extends Component
         $audience = $this->audience ?? $this->getIssuer();
 
         if (is_array($audience)) {
-            foreach ($audience as &$item) {
-                $inParams = explode('yii-params.', $item);
-
-                if (!empty($inParams[1])) {
-                    $item = Yii::$app->params[$inParams[1]] ?? $item;
-                }
-            }
+            $audience = array_map(function ($value) {
+                return $this->getConfigValue($value);
+            }, $audience);
         }
 
         return $audience;
@@ -345,7 +345,7 @@ class ApiTokenService extends Component
             throw new UnexpectedValueException('Empty jwt');
         }
 
-        $secretKey = $this->secretKey;
+        $secretKey = $this->getSecretKey();
 
         // Check audience
         if ($this->getAudience() !== false) {
@@ -433,5 +433,23 @@ class ApiTokenService extends Component
         }
 
         $this->log->logger->log($message, $level, $this->logCategory);
+    }
+
+    /**
+     * Parse value and return itself or real value from `Yii::$app->params`
+     *
+     * @param string $value
+     *
+     * @return mixed
+     */
+    private function getConfigValue($value)
+    {
+        $inParams = explode('yii-params.', $value);
+
+        if (!empty($inParams[1])) {
+            return Yii::$app->params[$inParams[1]] ?? $value;
+        }
+
+        return $value;
     }
 }
