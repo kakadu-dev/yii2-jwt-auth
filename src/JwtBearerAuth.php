@@ -8,6 +8,8 @@
 
 namespace Kakadu\Yii2JwtAuth;
 
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 use yii\di\Instance;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\Request;
@@ -78,7 +80,7 @@ class JwtBearerAuth extends HttpBearerAuth
 
     /**
      * @inheritdoc
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function init(): void
     {
@@ -89,6 +91,7 @@ class JwtBearerAuth extends HttpBearerAuth
 
     /**
      * @inheritdoc
+     * @throws Exception
      */
     public function authenticate($user, $request, $response)
     {
@@ -171,10 +174,11 @@ class JwtBearerAuth extends HttpBearerAuth
     /**
      * Force renew existed token.
      *
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return bool
+     * @throws Exception
      */
     public function renewToken(Request $request, Response $response): bool
     {
