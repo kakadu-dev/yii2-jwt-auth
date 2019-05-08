@@ -49,18 +49,24 @@ Configure api tokens component (e.g. common/config/main.php):
 ```php
 return [
     'components' => [
-        'apiTokens'      => [
-            'class'     => \Kakadu\Yii2JwtAuth\ApiTokenService::class,
-            'secretKey' => '', // set in main-local.php
-            'issuer'    => 'you-domain-name', // or yii-params.domain
-            'audience'  => ['you-domain-name'], // or yii-params.domain
-            'seamlessLogin' => false,
+        'apiTokens' => [
+            'class'           => \Kakadu\Yii2JwtAuth\ApiTokenService::class,
+            'secretKey'       => '', // set in main-local.php or yii-params.domainSecretKey
+            'issuer'          => 'you-domain-name', // or yii-params.domain
+            'audience'        => ['you-domain-name', 'second-domain-name'], // or yii-params.domain
+            'audienceSecrets' => [
+                'you-domain-name'    => '', // or yii-params.domainSecretKey
+                'second-domain-name' => '', // or yii-params.secondDomainSecretKey
+            ],
+            'seamlessLogin'   => false,
         ],
     ],
 ];
 ```
 
-All values in _issuer_, _audience_, _audienceSecrets_ which contain _yii-params.param-name_ will be converted to Yii::$app->params['param-name']
+All values in _secretKey_, _issuer_, _audience_, _audienceSecrets_ which contain _yii-params.param-name_ will be converted to Yii::$app->params['param-name']
+
+TBD: add example for `yii-params.*` config (e.g. for `audienceSecrets`).
 
 Now, after user registration, create JWT tokens and add their in response headers. 
 Also add an action to update tokens.  
