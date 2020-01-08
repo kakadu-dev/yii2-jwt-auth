@@ -10,7 +10,11 @@ namespace Kakadu\Yii2JwtAuth;
 
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
+use UnexpectedValueException;
+use Yii;
 use yii\base\Component;
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 use yii\di\Instance;
 use yii\log\Dispatcher;
 use yii\log\Logger;
@@ -101,7 +105,7 @@ class ApiTokenService extends Component
      *
      * @param array $config
      *
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function __construct(array $config = [])
     {
@@ -120,7 +124,7 @@ class ApiTokenService extends Component
      * @param array $params
      *
      * @return ApiToken|null
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function create(int $userId, array $params = []): ?ApiToken
     {
@@ -157,8 +161,8 @@ class ApiTokenService extends Component
 
         $newToken = new ApiToken([
             'user_id'         => $userId,
-            'access_token'    => JWT::encode($params, $this->secretKey, $this->alg),
-            'refresh_token'   => JWT::encode($jwtRefreshParams, $this->secretKey, $this->alg),
+            'access_token'    => JWT::encode($params, $this->getSecretKey(), $this->alg),
+            'refresh_token'   => JWT::encode($jwtRefreshParams, $this->getSecretKey(), $this->alg),
             'access_expires'  => $accessExpires,
             'refresh_expires' => $refreshExpires,
         ]);
@@ -198,19 +202,23 @@ class ApiTokenService extends Component
     }
 
     /**
+     * Get secret key
+     *
+     * @return string|null
+     */
+    private function getSecretKey(): ?string
+    {
+        return $this->getConfigValue($this->secretKey);
+    }
+
+    /**
      * Get jwt issuer
      *
      * @return string|null
      */
     private function getIssuer(): ?string
     {
-        $inParams = explode('yii-params.', $this->issuer);
-
-        if (!empty($inParams[1])) {
-            return \Yii::$app->params[$inParams[1]] ?? $this->issuer;
-        }
-
-        return $this->issuer;
+        return $this->getConfigValue($this->issuer);
     }
 
     /**
@@ -223,13 +231,9 @@ class ApiTokenService extends Component
         $audience = $this->audience ?? $this->getIssuer();
 
         if (is_array($audience)) {
-            foreach ($audience as &$item) {
-                $inParams = explode('yii-params.', $item);
-
-                if (!empty($inParams[1])) {
-                    $item = \Yii::$app->params[$inParams[1]] ?? $item;
-                }
-            }
+            $audience = array_map(function ($value) {
+                return $this->getConfigValue($value);
+            }, $audience);
         }
 
         return $audience;
@@ -249,7 +253,7 @@ class ApiTokenService extends Component
 
             if (!empty($inParams[1])) {
                 unset($audienceSecrets[$item]);
-                $audienceSecrets[\Yii::$app->params[$inParams[1]] ?? $item] = $value;
+                $audienceSecrets[Yii::$app->params[$inParams[1]] ?? $item] = $value;
             }
         }
 
@@ -288,6 +292,7 @@ class ApiTokenService extends Component
      * @param JwtToken $refreshToken
      *
      * @return ApiToken|null
+     * @throws Exception
      */
     public function renewJwtToken(JwtToken $accessToken, JwtToken $refreshToken): ?ApiToken
     {
@@ -337,10 +342,10 @@ class ApiTokenService extends Component
     private function decodeJwt(string $jwtToken = null): array
     {
         if (!$jwtToken) {
-            throw new \UnexpectedValueException('Empty jwt');
+            throw new UnexpectedValueException('Empty jwt');
         }
 
-        $secretKey = $this->secretKey;
+        $secretKey = $this->getSecretKey();
 
         // Check audience
         if ($this->getAudience() !== false) {
@@ -352,7 +357,7 @@ class ApiTokenService extends Component
             if ((is_string($allowAud) && $allowAud !== $issuer)
                 || (is_array($allowAud) && !in_array($issuer, $allowAud, true))
             ) {
-                throw new \UnexpectedValueException('Invalid issuer');
+                throw new UnexpectedValueException('Invalid issuer');
             }
 
             $audSecrets = $this->getAudienceSecrets();
@@ -380,7 +385,7 @@ class ApiTokenService extends Component
 
         if (empty($tks[1])) {
             if ($throwErrors) {
-                throw new \UnexpectedValueException('Wrong number of segments');
+                throw new UnexpectedValueException('Wrong number of segments');
             }
 
             return [];
@@ -388,7 +393,7 @@ class ApiTokenService extends Component
 
         $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($tks[1]));
         if ($payload === null && $throwErrors) {
-            throw new \UnexpectedValueException('Invalid claims encoding');
+            throw new UnexpectedValueException('Invalid claims encoding');
         }
 
         return (array) $payload;
@@ -400,21 +405,21 @@ class ApiTokenService extends Component
      *
      * @param string|null $jwtToken
      *
-     * @return bool
+     * @return int number of deleted tokens, may be 0
      */
-    public function deleteToken(string $jwtToken = null): bool
+    public function deleteToken(string $jwtToken = null): int
     {
         return ApiToken::deleteAll([
-                'OR',
-                ['access_token' => $jwtToken],
-                ['refresh_token' => $jwtToken],
-                // Delete expired tokens
-                $this->deleteExpired ? [
-                    'AND',
-                    ['<=', 'refresh_expires', time()],
-                    ['!=', 'refresh_expires', 0],
-                ] : [],
-            ]) > 0;
+            'OR',
+            ['access_token' => $jwtToken],
+            ['refresh_token' => $jwtToken],
+            // Delete expired tokens
+            $this->deleteExpired ? [
+                'AND',
+                ['<=', 'refresh_expires', time()],
+                ['!=', 'refresh_expires', 0],
+            ] : [],
+        ]);
     }
 
     /**
@@ -428,5 +433,23 @@ class ApiTokenService extends Component
         }
 
         $this->log->logger->log($message, $level, $this->logCategory);
+    }
+
+    /**
+     * Parse value and return itself or real value from `Yii::$app->params`
+     *
+     * @param string $value
+     *
+     * @return mixed
+     */
+    private function getConfigValue($value)
+    {
+        $inParams = explode('yii-params.', $value);
+
+        if (!empty($inParams[1])) {
+            return Yii::$app->params[$inParams[1]] ?? $value;
+        }
+
+        return $value;
     }
 }

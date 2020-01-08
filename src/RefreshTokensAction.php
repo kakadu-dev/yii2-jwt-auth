@@ -9,6 +9,8 @@
 namespace Kakadu\Yii2JwtAuth;
 
 use yii\base\Action;
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 use yii\di\Instance;
 use yii\web\Request;
 use yii\web\Response;
@@ -54,7 +56,7 @@ class RefreshTokensAction extends Action
 
     /**
      * @inheritdoc
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function init(): void
     {
@@ -68,11 +70,12 @@ class RefreshTokensAction extends Action
     /**
      * Renew tokens
      *
-     * @return void
+     * @throws UnauthorizedHttpException
+     * @throws Exception
      */
     public function run(): void
     {
-        list('accessToken' => $accessToken, 'refreshToken' => $refreshToken) = $this->getTokens();
+        ['accessToken' => $accessToken, 'refreshToken' => $refreshToken] = $this->getTokens();
 
         // Convert to jwt token model
         $jwtAccessToken  = $this->apiTokens->getJwtToken($accessToken);
